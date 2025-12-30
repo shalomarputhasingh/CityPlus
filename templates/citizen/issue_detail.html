@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Issue #{{ issue.id }} - CityPulse{% endblock %}
+
+{% block extra_css %}
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    
+    .top-bar { background:#4b3dbb; color:#fff; padding:16px 30px; display:flex; justify-content:space-between; align-items:center; }
+    .main { padding:40px; background:#f4f6f9; min-height: 85vh; display: flex; justify-content: center; }
+
+    .detail-container {
+        background: #fff;
+        width: 100%;
+        max-width: 900px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .header-section {
+        padding: 30px;
+        border-bottom: 1px solid #eee;
+        background: #fafafa;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .status-large {
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .st-unverified { background: #fff3cd; color: #856404; }
+    .st-verified { background: #cce5ff; color: #004085; }
+    .st-rejected { background: #f8d7da; color: #721c24; }
+    .st-solved { background: #d4edda; color: #155724; }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 3fr 2fr;
+        gap: 0;
+    }
+
+    .left-col { padding: 40px; border-right: 1px solid #eee; }
+    .right-col { padding: 40px; background: #fdfdfd; }
+
+    h1 { color: #333; font-size: 28px; margin-bottom: 10px; }
+    .meta-date { color: #888; font-size: 14px; margin-bottom: 20px; display: block; }
+
+    .section-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        color: #999;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .info-block { margin-bottom: 30px; }
+    .info-text { font-size: 16px; line-height: 1.6; color: #444; }
+    .desc-text { font-size: 18px; line-height: 1.7; color: #333; }
+
+    .image-preview {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        margin-top: 10px;
+    }
+
+    .timeline {
+        border-left: 2px solid #ddd;
+        padding-left: 20px;
+        margin-top: 20px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 25px;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -26px;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ccc;
+        border: 2px solid #fff;
+    }
+
+    .timeline-item.active::before { background: #4b3dbb; transform: scale(1.2); }
+    .timeline-item.completed::before { background: #2ecc71; }
+    .timeline-item.rejected::before { background: #e74c3c; }
+
+    .timeline-date { font-size: 12px; color: #888; }
+    .timeline-title { font-weight: 600; color: #333; font-size: 14px; }
+    .timeline-desc { font-size: 13px; color: #666; margin-top: 5px; }
+
+    .btn-back {
+        display: inline-block;
+        padding: 10px 20px;
+        color: #4b3dbb;
+        text-decoration: none;
+        font-weight: 600;
+        border: 1px solid #4b3dbb;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+    .btn-back:hover { background: #4b3dbb; color: #fff; }
+
+    .rejection-box {
+        background: #fff5f5;
+        border: 1px solid #f5c6cb;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+    .solution-box {
+        background: #f0fff4;
+        border: 1px solid #c3e6cb;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+
+    @media(max-width: 768px) {
+        .content-grid { grid-template-columns: 1fr; }
+        .left-col { border-right: none; border-bottom: 1px solid #eee; }
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <h2 style="font-size: 20px;">CityPulse</h2>
+    </div>
+    <a href="{% url 'citizen_dashboard' %}" style="color: #fff; text-decoration: underline;">&larr; Back to Dashboard</a>
+</div>
+
+<div class="main">
+    <div class="detail-container">
+        
+        <div class="header-section">
+            <div>
+                <span class="section-label">ISSUE REPORT #{{ issue.id }}</span>
+                <h1>{{ issue.title }}</h1>
+                <span class="meta-date">Submitted on {{ issue.created_at|date:"F d, Y, h:i A" }}</span>
+            </div>
+            <div>
+                {% if issue.status == 'unverified' %}
+                    <span class="status-large st-unverified">Pending Review</span>
+                {% elif issue.status == 'verified' %}
+                     <span class="status-large st-verified">In Progress</span>
+                {% elif issue.status == 'rejected' %}
+                     <span class="status-large st-rejected">Rejected</span>
+                {% elif issue.status == 'solved' %}
+                     <span class="status-large st-solved">Resolved</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="content-grid">
+            
+            <div class="left-col">
+                <div class="info-block">
+                    <span class="section-label">DESCRIPTION</span>
+                    <p class="desc-text">{{ issue.description }}</p>
+                </div>
+
+                <div class="info-block">
+                    <span class="section-label">LOCATION & DETAILS</span>
+                    <p class="info-text"><strong>Category:</strong> {{ issue.category }}</p>
+                    <p class="info-text"><strong>Village/Area:</strong> {{ issue.village|default:"-" }}</p>
+                    <p class="info-text"><strong>Landmark:</strong> {{ issue.landmark|default:"-" }}</p>
+                    <p class="info-text"><strong>Full Address:</strong> {{ issue.address|default:"-" }}</p>
+                </div>
+
+                <!-- Rejection Details -->
+                {% if issue.status == 'rejected' and issue.rejection_reason %}
+                <div class="info-block">
+                    <span class="section-label" style="color:#dc3545;">REJECTION DETAILS</span>
+                    <div class="rejection-box">
+                        <p style="color:#721c24; font-weight:bold;">Reason for Rejection:</p>
+                        <p style="color:#721c24;">{{ issue.rejection_reason }}</p>
+                        <p style="font-size:12px; color:#999; margin-top:5px;">Rejected on {{ issue.rejected_at|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Solution Details -->
+                {% if issue.status == 'solved' and issue.resolution_notes %}
+                <div class="info-block">
+                    <span class="section-label" style="color:#28a745;">RESOLUTION DETAILS</span>
+                    <div class="solution-box">
+                        <p style="color:#155724; font-weight:bold;">Admin Notes:</p>
+                        <p style="color:#155724;">{{ issue.resolution_notes }}</p>
+                        <p style="font-size:12px; color:#999; margin-top:5px;">Solved on {{ issue.solved_at|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <a href="{% url 'citizen_dashboard' %}" class="btn-back">Return to List</a>
+            </div>
+
+            <div class="right-col">
+                <div class="info-block">
+                    <span class="section-label">ATTACHED PHOTO</span>
+                    {% if issue.image_url %}
+                        <a href="{{ issue.image_url }}" target="_blank">
+                            <img src="{{ issue.image_url }}" alt="Issue Photo" class="image-preview">
+                        </a>
+                        <p style="font-size:12px; color:#999; margin-top:5px; text-align:center;">Click to enlarge</p>
+                    {% else %}
+                        <div style="background:#eee; height:150px; display:flex; align-items:center; justify-content:center; border-radius:10px; color:#888;">
+                            No Image Uploaded
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="info-block">
+                    <span class="section-label">STATUS TIMELINE</span>
+                    <div class="timeline">
+                        <!-- Step 1: Submitted -->
+                        <div class="timeline-item completed">
+                            <div class="timeline-title">Issue Submitted</div>
+                            <div class="timeline-date">{{ issue.created_at|date:"M d, Y h:i A" }}</div>
+                            <div class="timeline-desc">You reported this issue.</div>
+                        </div>
+
+                        <!-- Step 2: Verification -->
+                        {% if issue.status == 'unverified' %}
+                            <div class="timeline-item active">
+                                <div class="timeline-title">Awaiting Verification</div>
+                                <div class="timeline-desc">Pending review by authority.</div>
+                            </div>
+                        {% else %}
+                             <!-- If rejected/verified/solved, this step is arguably 'done' or branched -->
+                             {% if issue.status == 'rejected' %}
+                                <div class="timeline-item rejected">
+                                    <div class="timeline-title" style="color:#e74c3c;">Rejected</div>
+                                    <div class="timeline-date">{{ issue.rejected_at|date:"M d, Y" }}</div>
+                                    <div class="timeline-desc">Issue could not be processed.</div>
+                                </div>
+                             {% else %}
+                                <div class="timeline-item completed">
+                                    <div class="timeline-title">Verified</div>
+                                    <div class="timeline-date">{{ issue.verified_at|date:"M d, Y" }}</div>
+                                    <div class="timeline-desc">Verified by admin. Work in progress.</div>
+                                </div>
+                             {% endif %}
+                        {% endif %}
+
+                        <!-- Step 3: Resolution (Only if not rejected) -->
+                        {% if issue.status != 'rejected' %}
+                            {% if issue.status == 'solved' %}
+                                <div class="timeline-item completed">
+                                    <div class="timeline-title">Resolved</div>
+                                    <div class="timeline-date">{{ issue.solved_at|date:"M d, Y" }}</div>
+                                    <div class="timeline-desc">Issue marked as solved.</div>
+                                </div>
+                            {% elif issue.status == 'verified' %}
+                                <div class="timeline-item active">
+                                    <div class="timeline-title">In Progress</div>
+                                    <div class="timeline-desc">Team is working on resolution.</div>
+                                </div>
+                            {% else %}
+                                <div class="timeline-item">
+                                    <div class="timeline-title">Resolution</div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Citizen Login - CityPulse{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Exact styles from client-login.html */
+* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, Helvetica, sans-serif; }
+body { min-height:100vh; background:url("{% static 'assets/images/banners/login-bg.jpg' %}") center/cover no-repeat; position:relative; }
+body::before { content:""; position:absolute; inset:0; background:rgba(255,255,255,0.45); z-index:1; }
+.page-center { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:40px 20px; position:relative; z-index:2; }
+.card { width:420px; background:#fff; border-radius:26px; border:3px solid #000; overflow:hidden; }
+.header { background:#4b3dbb; padding:22px; color:#fff; position:relative; height:155px; }
+.header::after { content:""; position:absolute; bottom:-55px; left:0; width:100%; height:110px; background:#4b3dbb; border-bottom-left-radius:100% 100px; border-bottom-right-radius:100% 100px; }
+.header-content { display:flex; align-items:center; gap:14px; }
+.logo-circle { width:58px; height:58px; background:#fff; border-radius:50%; display:flex; justify-content:center; align-items:center; }
+.logo-circle img { width:40px; }
+.header h2 { font-size:24px; }
+.header p { font-size:13px; opacity:0.9; }
+.image-box { margin-top:45px; padding:0 18px; }
+.image-box img { width:100%; border-radius:28px; }
+.form { padding:26px; }
+.form h3 { text-align:center; font-size:24px; margin:18px 0 22px; }
+.row { display:flex; align-items:center; margin-bottom:18px; }
+.row label { width:70px; font-size:20px; color: #000; }
+.row input { flex:1; padding:10px 14px; border-radius:25px; border:2px solid #000; font-size:16px; color: #000; }
+.row button { margin-left:10px; padding:10px 20px; background:#4b3dbb; color:#fff; border:none; border-radius:25px; font-size:16px; cursor:pointer; }
+.submit { display:block; width:70%; margin:22px auto 10px; padding:14px; background:#4b3dbb; color:#fff; border:none; border-radius:32px; font-size:20px; cursor:pointer; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-center">
+  <div class="card">
+    <div class="header">
+      <div class="header-content">
+        <div class="logo-circle">
+          <img src="{% static 'assets/icons/logo.jpeg' %}" alt="logo">
+        </div>
+        <div>
+          <h2>Citypluse</h2>
+          <p>Theni District | Public Grievance System</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="image-box">
+      <img src="{% static 'assets/images/banners/theni-banner.jpg' %}" alt="Theni">
+    </div>
+
+    <div class="form">
+      <h3>Citizen Login</h3>
+      {% if messages %}
+        <div style="text-align:center; color:red; margin-bottom:10px;">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        
+        <!-- STEP 1: SEND OTP -->
+        {% if step == 'phone' %}
+            <input type="hidden" name="action" value="send_otp">
+            <div class="row">
+                <label>Login </label>
+                <input type="text" name="phone_number" placeholder="Phone +91..." required>
+                <!-- Reuse the styling of the small button if desired, or just use the main submit -->
+            </div>
+            <button class="submit" type="submit">Get OTP</button>
+
+        <!-- STEP 2: VERIFY OTP -->
+        {% elif step == 'verify' %}
+            <input type="hidden" name="action" value="verify_otp">
+            <input type="hidden" name="phone_number" value="{{ phone }}">
+            
+            <div class="row">
+                <label>Login </label>
+                <input type="text" value="{{ phone }}" disabled style="background:#eee;">
+            </div>
+            
+            <div class="row">
+                <label>OTP </label>
+                <input type="text" name="otp" placeholder="Enter OTP" required>
+            </div>
+            
+            <button class="submit" type="submit">Verify & Login</button>
+            <p style="text-align:center; margin-top:10px;">
+                <a href="{% url 'login' %}" style="color:#4b3dbb;">Change Number</a>
+            </p>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

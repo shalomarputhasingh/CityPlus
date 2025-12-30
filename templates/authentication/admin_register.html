@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Registration - CityPulse{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<style>
+  body {
+    background-image: url("{% static 'assets/images/banners/login-bg.jpg' %}");
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-center">
+  <div class="card">
+    <div class="auth-header">
+      <div class="header-content">
+        <div class="logo-circle">
+          <img src="{% static 'assets/icons/logo.jpeg' %}" alt="logo">
+        </div>
+        <div>
+          <h2>CityPulse</h2>
+          <p>Admin Portal Registration</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form">
+      <h3>Admin Registration</h3>
+      
+      {% if messages %}
+        <div class="error-message">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required placeholder="admin@example.com">
+        </div>
+        <div class="row">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="row">
+            <label for="confirm">Confirm:</label>
+            <input type="password" id="confirm" name="confirm_password" required>
+        </div>
+        
+        <button type="submit" class="submit">Register</button>
+      </form>
+      
+      <p style="text-align: center; margin-top: 10px;">
+        <a href="{% url 'admin_login' %}">Back to Login</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
