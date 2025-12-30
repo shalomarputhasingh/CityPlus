@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}">
+<style>
+  .banner {
+    background-image: url("{% static 'assets/images/banners/theni-banner.jpg' %}");
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <!-- ================= TOP BAR ================= -->
+  <div class="top-bar">
+    <div class="top-left">
+      <img src="{% static 'assets/icons/logo.jpeg' %}" alt="Logo">
+      <div class="top-title">
+        <h1>Citypulse</h1>
+        <p>Theni District | Public Grievance System</p>
+      </div>
+    </div>
+
+    <!-- Adjust link to Admin Portal/Login -->
+    <a href="{% url 'admin_login' %}" class="admin-button-link">
+        <button class="admin-btn">
+        ADMIN LOGIN
+        </button>
+    </a>
+  </div>
+
+  <!-- ================= BANNER ================= -->
+  <div class="banner">
+    <h1>THENI</h1>
+  </div>
+
+  <!-- ================= CONTENT ================= -->
+  <div class="content">
+    <h2>Report Civic Issues Easily</h2>
+
+    <p>
+      CityPulse helps citizens of Theni district report civic problems like road
+      damage, garbage, water issues, and streetlight problems.
+      Your report goes directly to the district administration.
+    </p>
+
+    <div class="buttons">
+      <!-- 'New user' -> Registration -->
+      <a href="{% url 'register' %}">
+        <button>New user</button>
+      </a>
+      
+      <!-- 'Track / Login' -> Login -->
+      <a href="{% url 'login' %}">
+        <button>Track / Login</button>
+      </a>
+    </div>
+  </div>
+
+  <!-- ================= CONTACT ================= -->
+  <div class="contact-bar">
+    <div class="contact-item">
+      📞 Emergency no: 555-555-(5555)
+    </div>
+    <div class="contact-item">
+      🌐 website : https://www.citypluse.in
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <div class="footer">
+    © 2025 CityPulse – Theni District | Public Grievance System
+  </div>
+{% endblock %}

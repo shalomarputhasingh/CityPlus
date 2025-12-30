@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Issue - CityPulse{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Styles from report-issue.html */
+* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, Helvetica, sans-serif; }
+.top-bar{ background:#4b3dbb; color:#fff; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; }
+.top-left{ display:flex; align-items:center; gap:12px; }
+.top-left img{ width:45px; height:45px; background:#fff; border-radius:50%; padding:5px; }
+.top-left h2{ font-size:22px; }
+.top-left p{ font-size:13px; opacity:0.9; }
+.top-right{ font-size:20px; }
+.main{ display:flex; gap:30px; padding:30px; background:#f4f4f4; }
+.map-box{ width:35%; background:#fff; border-radius:25px; border:2px solid #efe8e8; padding:20px; }
+.map-box img{ width:100%; border-radius:20px; }
+.form-card{ width:65%; background:#4b3dbb; border-radius:30px; padding:25px; color:#fff; }
+.form-section{ background:#fff; border-radius:25px; padding:20px; margin-bottom:18px; }
+.section-title{ background:#4b3dbb; color:#fff; padding:8px 20px; border-radius:20px; font-size:20px; margin-bottom:10px; }
+textarea{ width:100%; height:70px; border-radius:20px; border:2px solid #000; padding:15px; font-size:16px; color: #000; }
+.row{ display:flex; gap:15px; margin-top:15px; }
+.input-box{ flex:1; }
+.input-box label{ display:block; background:#4b3dbb; color:#fff; text-align:center; padding:6px; border-radius:20px; margin-bottom:6px; }
+.input-box input, .input-box select{ width:100%; padding:12px; border-radius:25px; border:2px solid #000; font-size:16px; color: #000; }
+
+.button-row{ display:flex; justify-content:space-between; margin-top:20px; }
+.btn{ background:#fff; color:#4b3dbb; border:none; padding:14px 40px; border-radius:35px; font-size:20px; cursor:pointer; }
+.contact{ margin-top:15px; text-align:center; font-size:18px; }
+.footer{ background:#4b3dbb; color:#fff; text-align:center; padding:15px; font-size:20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ================= TOP BAR ================= -->
+<div class="top-bar">
+  <div class="top-left">
+    <img src="{% static 'assets/icons/logo.jpeg' %}" alt="logo">
+    <div>
+      <h2>CityPulse</h2>
+      <p>Theni District | Public Grievance System</p>
+    </div>
+  </div>
+  <div class="top-right">
+      Citizen portal | <a href="{% url 'citizen_dashboard' %}" style="color: #fff; text-decoration: underline;">Dashboard</a> | <a href="{% url 'logout' %}" style="color: #fff; text-decoration: underline;">Logout</a>
+  </div>
+</div>
+
+<!-- ================= MAIN ================= -->
+<div class="main">
+
+  <!-- MAP -->
+  <div class="map-box">
+    <img src="{% static 'assets/images/banners/map-theni.png' %}" onerror="this.src='https://via.placeholder.com/400x300?text=Map'">
+  </div>
+
+  <!-- FORM -->
+  <div class="form-card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Added Title Field for Django Model compliance -->
+        <div class="form-section">
+            <div class="section-title">Issue Title</div>
+            <input type="text" name="title" class="input-box" style="width: 100%; padding: 12px; border-radius: 25px; border: 2px solid #000;" placeholder="Short title of the issue" required>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title">Issues Description</div>
+          <textarea name="description" required></textarea>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title">Issue Type</div>
+          <select name="category" required>
+            <option value="">Select issue type</option>
+            <option value="Infrastructure">Road / Infrastructure</option>
+            <option value="Water Supply">Water Supply</option>
+            <option value="Sanitation">Garbage / Sanitation</option>
+            <option value="Electricity">Street Light / Electricity</option>
+            <option value="Drainage">Drainage</option>
+            <option value="Public Safety">Public Safety</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+
+        <div class="form-section">
+          <div class="row">
+            <div class="input-box">
+              <label>Block / Taluk</label>
+              <select id="block" name="block" onchange="updateVillages()">
+                <option value="">Select</option>
+                <option>Theni</option>
+                <option>Periyakulam</option>
+                <option>Andipatti</option>
+                <option>Bodinayakanur</option>
+                <option>Uthamapalayam</option>
+              </select>
+            </div>
+
+            <div class="input-box">
+              <label>Village</label>
+              <select id="village" name="village">
+                <option value="">Select</option>
+              </select>
+            </div>
+
+            <div class="input-box">
+              <label>Landmark</label>
+              <input type="text" id="landmark" name="landmark">
+            </div>
+            
+            <!-- We will combine Block/Village/Landmark into 'address' field on submit via JS or separate fields if backend supports -->
+            <!-- For now, simplifying: Let's assume we send 'address' as a constructed string or backend handles. 
+                 Since I can't easily change backend model in this Turn, I'll use a hidden input for 'address' and populate it. -->
+            <input type="hidden" name="address" id="full_address">
+          </div>
+        </div>
+
+
+
+        <div class="button-row">
+          <!-- Image Upload mapped to Django 'image' field -->
+          <div style="background:#fff; color:#4b3dbb; padding:10px 20px; border-radius:35px;">
+              <label for="image_upload" style="cursor: pointer;">Upload Photo 📷</label>
+              <input type="file" name="image" id="image_upload" style="display: none;">
+              <span id="file_name" style="font-size: 12px; margin-left: 5px;"></span>
+          </div>
+          
+          <button class="btn" type="submit" onclick="prepareSubmit()">Submit</button>
+        </div>
+    </form>
+
+    <div class="contact">
+      📞 Emergency no: 555-555-(5555) &nbsp;
+      🌐 website : https://www.citypulse.in
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  © 2025 CityPulse – Theni District | Public Grievance System
+</div>
+
+<script>
+/* ===== BLOCK → VILLAGE ===== */
+const blockVillageMap = {
+  "Theni": ["Allinagaram","Govindanagaram","Jangalpatti","Koduvilarpatti","Kottur","Poomalaigundu","Seelayampatti","Thadicherry","Thappugundu","Unjampatti","Upparpatti","Veerapandi"],
+  "Periyakulam": ["A.Kamachipuram","Devadanapatti Bit-I","Endapuli","Genguvarpatti Bit-I","Jayamangalam Bit-I","Keelavadagarai","Kullapuram","Melmangalam Bit-I","Pudukottai","Silvarpatti","Thamaraikulam Bit-I","Thenkarai Bit-I","Vadakarai Bit-I","Vadaveeranaickanpatti","Vadipatti"],
+  "Andipatti": ["Andipatti Bit-I","Andipatti Bit-II","Balakombai","Chittarpatty","G.Usilampatti","Kadamalaigundu","Kanavaipatti","Kothaloothu","Kothapatti","Kovilpatti","Kunnur","Marigundu","Megamalai","Mottanuthu","Myladumparai","Palayakottai","Pullimankombai","Rajadhani","Ramakrishnapuram","Shanmugasundarapuram","Thekkampatti","Theppampatti","Vallalnathi"],
+  "Bodinayakanur": ["Agamalai","B.Ammapatti","B.Meenatchipuram","Bodi (Town)","Bodi North Hills","Bodi West Hills","Boothipuram","Dombuchery","Kodankipatti","Koolayanur","Kottakudi","M.C.Puram","Rasingapuram","Silamalai","Uppukottai"],
+  "Uthamapalayam": ["Alagapuri","Chinnamanur","Cumbum","Odaipatti","Pannaipuram","Rayappanpatti","Seeppalakottai","Thevaram","Thevaram Malai","Uthamapalayam North","Uthamapalayam South","Veppampatti"]
+};
+
+function updateVillages() {
+  const blockSelect = document.getElementById("block");
+  const villageSelect = document.getElementById("village");
+  
+  villageSelect.innerHTML = `<option value="">Select</option>`;
+  const villages = blockVillageMap[blockSelect.value];
+  if (!villages) return;
+
+  villages.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    villageSelect.appendChild(opt);
+  });
+}
+
+
+
+document.getElementById('image_upload').onchange = function() {
+  document.getElementById('file_name').innerText = this.files[0].name;
+};
+
+function prepareSubmit() {
+    const block = document.getElementById("block").value;
+    const village = document.getElementById("village").value;
+    const landmark = document.getElementById("landmark").value;
+    
+    // Combine into address field for Django model
+    const fullAddress = `${block}, ${village}, ${landmark}`;
+    document.getElementById("full_address").value = fullAddress;
+}
+</script>
+{% endblock %}

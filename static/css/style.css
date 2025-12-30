@@ -1,0 +1,207 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", Arial, sans-serif;
+}
+
+body {
+  background: #f4f6fb;
+}
+
+.header {
+  background: #4b3cc4;
+  color: white;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header button {
+  background: white;
+  color: #4b3cc4;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.hero {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.hero h2 {
+  color: #4b3cc4;
+  margin-bottom: 10px;
+}
+
+.hero button {
+  background: #4b3cc4;
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 25px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+.bg-section {
+  background: url("../assets/images/banners/login-bg.jpg") center/cover
+    no-repeat;
+  padding: 60px 0;
+}
+
+.card {
+  width: 350px;
+  margin: auto;
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.card-header {
+  background: #4b3cc4;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+.card-header img {
+  width: 50px;
+}
+
+.card-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.card-body input {
+  width: 100%;
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 15px;
+  border: 1px solid #ccc;
+}
+
+.card-body button {
+  background: #4b3cc4;
+  color: white;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  border-radius: 20px;
+  margin-top: 10px;
+}
+
+.footer {
+  background: #4b3cc4;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-btn {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown-btn:hover {
+  border-color: #4b3dbb;
+}
+
+.arrow {
+  font-size: 12px;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  width: 100%;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  margin-top: 6px;
+  list-style: none;
+  padding: 6px 0;
+  z-index: 100;
+}
+
+.dropdown-menu li {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dropdown-menu li:hover {
+  background: #f3f3ff;
+}
+
+/* =========================================
+   GLOBAL TEXT COLOR OVERRIDES
+   ========================================= */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div,
+li,
+a,
+label,
+input,
+button {
+  color: #000;
+}
+
+/* Revert specific white text where background is dark */
+.header,
+.top-bar,
+.card-header,
+.footer,
+.banner h1,
+.auth-header,
+.admin-btn,
+.submit {
+  color: #fff !important;
+}
+
+/* Specific elements inside dark headers */
+.top-bar p,
+.top-bar h1 {
+  color: #fff !important;
+}
+
+/* Ensure inputs have black text explicitly */
+input,
+textarea,
+select {
+  color: #000 !important;
+}
+
+/* Ensure table text is black */
+table,
+th,
+td {
+  color: #000;
+}

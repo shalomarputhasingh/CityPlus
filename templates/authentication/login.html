@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - CityPulse{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<style>
+  body {
+    background-image: url("{% static 'assets/images/banners/login-bg.jpg' %}");
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-center">
+  <div class="card">
+    <!-- HEADER -->
+    <div class="auth-header">
+      <div class="header-content">
+        <div class="logo-circle">
+          <img src="{% static 'assets/icons/logo.jpeg' %}" alt="logo">
+        </div>
+        <div>
+          <h2>CityPulse</h2>
+          <p>Theni District | Public Grievance System</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- IMAGE -->
+    <div class="image-box">
+      <img src="{% static 'assets/images/banners/theni-banner.jpg' %}" alt="Theni">
+    </div>
+
+    <!-- FORM -->
+    <div class="form">
+      <h3>Login</h3>
+      
+      {% if messages %}
+        <div class="error-message">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="row">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="row">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <button type="submit" class="submit">Login</button>
+      </form>
+      
+      <p style="text-align: center; margin-top: 10px;">
+        <a href="{% url 'register' %}">New User? Register here</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

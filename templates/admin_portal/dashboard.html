@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - CityPulse{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Exact styles from admin-dashboard.html */
+* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, Helvetica, sans-serif; }
+
+/* ================= TOP BAR ================= */
+.top-bar{ background:#4b3dbb; color:#fff; padding:16px 30px; display:flex; justify-content:space-between; align-items:center; }
+.top-left{ display:flex; align-items:center; gap:12px; }
+.top-left img{ width:45px; height:45px; background:#fff; border-radius:50%; padding:5px; }
+.top-left h2{ font-size:24px; }
+.top-left p{ font-size:13px; opacity:0.9; }
+.top-right{ font-size:22px; }
+
+/* ================= MAIN ================= */
+.main{ display:flex; gap:30px; padding:30px; background:#f4f4f4; min-height: 80vh; }
+
+/* ================= LEFT PANEL ================= */
+.left-panel{ width:30%; }
+.map-box{ background:#fff; border-radius:25px; border:2px solid #fafafa; padding:20px; }
+.map-box img{ width:100%; border-radius:20px; }
+.stats{ margin-top:20px; }
+.stat{ background:#4b3dbb; color:#fff; display:flex; justify-content:space-between; padding:12px 20px; border-radius:25px; margin-bottom:12px; font-size:18px; }
+.stat span{ background:#fff; color:#4b3dbb; padding:4px 16px; border-radius:20px; }
+
+/* ================= RIGHT PANEL ================= */
+.right-panel{ width:70%; background:#4b3dbb; border-radius:30px; padding:25px; }
+
+/* ================= TABLES ================= */
+.table-box{ background:#fff; border-radius:25px; padding:15px; margin-bottom:20px; overflow-x: auto;}
+table{ width:100%; border-collapse:separate; border-spacing:10px; }
+th, td{ background:#4b3dbb; color:#fff; padding:12px; border-radius:10px; text-align:center; font-size:16px; }
+th{ font-size:14px; }
+td { color: #fff !important; }
+
+/* ================= CHARTS & BUTTONS ================= */
+.bottom-row{ display:flex; gap:20px; }
+.chart{ background:#fff; border-radius:25px; padding:20px; width:33%; text-align:center; cursor:pointer; transition:transform 0.2s, box-shadow 0.2s; }
+.chart:hover{ transform:scale(1.03); box-shadow:0 6px 20px rgba(0,0,0,0.2); }
+.chart img{ width:100%; }
+.actions{ width:33%; display:flex; flex-direction:column; justify-content:center; gap:20px; }
+.actions button{ background:#fff; color:#4b3dbb; border:none; padding:14px; border-radius:30px; font-size:22px; cursor:pointer; transition:background 0.2s, color 0.2s; }
+.actions button:hover{ background:#4b3dbb; color:#fff; border:2px solid #fff; }
+
+/* ================= FOOTER ================= */
+.footer{ background:#4b3dbb; color:#fff; text-align:center; padding:15px; font-size:20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ================= TOP BAR ================= -->
+<div class="top-bar">
+  <div class="top-left">
+    <img src="{% static 'assets/icons/logo.jpeg' %}" alt="logo">
+    <div>
+      <h2>CityPulse</h2>
+      <p>Theni District | Public Grievance System</p>
+    </div>
+  </div>
+  <div class="top-right">
+      Admin portal | <a href="{% url 'logout' %}" style="color: #fff; text-decoration: underline; font-size: 16px;">Logout</a>
+  </div>
+</div>
+
+<!-- ================= MAIN ================= -->
+<div class="main">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="map-box">
+      <img src="{% static 'assets/images/banners/map-theni.png' %}" alt="Map" onerror="this.src='https://via.placeholder.com/400x300?text=Map+of+Theni'">
+    </div>
+
+    <div class="stats">
+      <div class="stat">TOTAL BLOCKS <span>{{ stats.total_blocks }}</span></div>
+      <div class="stat">TOTAL TALUKS <span>{{ stats.total_taluks }}</span></div>
+      <div class="stat">TOTAL VILLAGES <span>{{ stats.total_villages }}</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <div class="table-box">
+      <table>
+        <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Address</th>
+              <th>Status</th>
+              <th>Image</th>
+              <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="issuesTableBody">
+            {% for issue in issues %}
+            <tr>
+                <td>{{ issue.title }}</td>
+                <td>{{ issue.category }}</td>
+                <td>{{ issue.village }} / {{ issue.block }}</td>
+                <td>{{ issue.get_status_display }}</td>
+                <td>
+                    {% if issue.image_url %}
+                    <a href="{{ issue.image_url }}" target="_blank" style="color: #fff; text-decoration: underline;">View</a>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td>{{ issue.created_at|date:"d M Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No issues reported yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="table-box">
+      <table>
+        <thead>
+            <tr>
+              <th>SUMMARY</th>
+              <th>TOTAL ISSUES</th>
+              <th>PENDING</th>
+              <th>IN PROGRESS</th>
+              <th>SOLVED</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+              <td>Count</td>
+              <td>{{ summary.total }}</td>
+              <td>{{ summary.pending }}</td>
+              <td>{{ summary.in_progress }}</td>
+              <td>{{ summary.solved }}</td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bottom-row">
+      <div class="chart">
+        <p style="text-align: center; color: #4b3dbb; font-weight: bold; margin-bottom: 5px;">By Block</p>
+        <canvas id="barChartCanvas"></canvas>
+      </div>
+
+      <div class="chart">
+        <p style="text-align: center; color: #4b3dbb; font-weight: bold; margin-bottom: 5px;">By Status</p>
+        <canvas id="pieChartCanvas"></canvas>
+      </div>
+
+      <div class="actions">
+        <a href="{% url 'verification_queue' %}" id="verifyBtn" style="text-decoration:none; text-align:center;">
+            <button style="width:100%;">VERIFIED</button>
+        </a>
+        <a href="{% url 'resolution_queue' %}" id="solveBtn" style="text-decoration:none; text-align:center;">
+            <button style="width:100%;">SOLVE</button>
+        </a>
+        <a href="{% url 'report_config' %}" id="reportBtn" style="text-decoration:none; text-align:center;">
+            <button style="width:100%;">REPORT</button>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  © 2025 CityPulse – Theni District | Public Grievance System
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Load data from Django context
+    const barData = JSON.parse('{{ bar_chart|safe }}');
+    const pieData = JSON.parse('{{ pie_chart|safe }}');
+
+    /* BAR CHART (Issues per Block) */
+    if (barData.labels.length > 0) {
+        new Chart(document.getElementById('barChartCanvas'), {
+        type: 'bar',
+        data: {
+            labels: barData.labels,
+            datasets: [{
+            label: 'Issues Count',
+            data: barData.data,
+            backgroundColor: '#4b3dbb'
+            }]
+        },
+        options: {
+            responsive: true
+        }
+        });
+    } else {
+        // Fallback if empty
+        new Chart(document.getElementById('barChartCanvas'), {
+            type: 'bar',
+            data: { labels: ['No Data'], datasets: [{ label: 'Empty', data: [0] }] }
+        });
+    }
+
+    /* PIE CHART (Issues per Status) */
+    new Chart(document.getElementById('pieChartCanvas'), {
+    type: 'pie',
+    data: {
+        labels: pieData.labels,
+        datasets: [{
+        data: pieData.data,
+        backgroundColor: ['#ff9800','#2196f3','#4caf50']
+        }]
+    },
+    options: {
+        responsive: true
+    }
+    });
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reports - Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    
+    .top-bar { background:#4b3dbb; color:#fff; padding:16px 30px; display:flex; justify-content:space-between; align-items:center; }
+    .main { padding:30px; background:#f4f6f9; min-height: 90vh; display: flex; justify-content: center; align-items: flex-start; }
+    
+    .report-card {
+        background: #fff;
+        width: 100%;
+        max-width: 600px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-top: 50px;
+    }
+    
+    .card-header {
+        background: #4b3dbb;
+        color: #fff;
+        padding: 25px;
+        text-align: center;
+    }
+    
+    .card-header h2 { margin: 0; font-size: 24px; }
+    .card-header p { margin-top: 5px; opacity: 0.8; font-size: 14px; }
+    
+    .card-body { padding: 30px; }
+    
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+    .form-control { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 14px; transition: border-color 0.3s; }
+    .form-control:focus { border-color: #4b3dbb; outline: none; }
+    
+    .btn { width: 100%; padding: 15px; background: #4b3dbb; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+    .btn:hover { background: #3a2fa8; }
+    
+    .date-row { display: flex; gap: 15px; }
+    .date-row .form-group { flex: 1; }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+  <h3>Admin Portal</h3>
+  <div>
+      <a href="{% url 'admin_dashboard' %}" style="color:white; margin-right:15px;">Dashboard</a>
+      <a href="{% url 'logout' %}" style="color:white;">Logout</a>
+  </div>
+</div>
+
+<div class="main">
+    <div class="report-card">
+        <div class="card-header">
+            <h2>Generate Report</h2>
+            <p>Customize and download issue reports</p>
+        </div>
+        <div class="card-body">
+            <form action="{% url 'generate_report' %}" method="POST" target="_blank">
+                {% csrf_token %}
+                
+                <div class="date-row">
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <input type="date" name="start_date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>To Date</label>
+                        <input type="date" name="end_date" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="status" class="form-control">
+                        <option value="all">All Statuses</option>
+                        <option value="unverified">Unverified</option>
+                        <option value="verified">Verified</option>
+                        <option value="solved">Solved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category" class="form-control">
+                        <option value="all">All Categories</option>
+                        <option value="Roads">Roads & Transport</option>
+                        <option value="Water">Water Supply</option>
+                        <option value="Electricity">Electricity</option>
+                        <option value="Sanitation">Sanitation</option>
+                        <option value="Health">Health</option>
+                        <option value="Education">Education</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn">Generate PDF Report</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
