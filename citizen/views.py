@@ -80,6 +80,10 @@ def submit_issue(request):
         
         # Handle Image Upload
         image_url = None
+        if 'image' not in request.FILES:
+            messages.error(request, "Image upload is required to report an issue.")
+            return render(request, 'citizen/submit_issue.html')
+
         if 'image' in request.FILES:
             image_file = request.FILES['image']
             file_ext = mimetypes.guess_extension(image_file.content_type) or '.jpg'
