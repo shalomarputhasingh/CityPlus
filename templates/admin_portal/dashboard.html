@@ -152,8 +152,12 @@ td { color: #fff !important; }
         <canvas id="barChartCanvas"></canvas>
       </div>
 
-      <div class="chart">
-        <p style="text-align: center; color: #4b3dbb; font-weight: bold; margin-bottom: 5px;">By Status</p>
+      <div class="chart" style="position:relative;">
+        <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom: 5px;">
+            <p style="text-align: center; color: #4b3dbb; font-weight: bold; margin: 0;">By Status</p>
+            <button type="button" onclick="toggleColorSettings(event)" style="background:none; border:none; cursor:pointer; font-size: 1.2rem; transition: transform 0.2s;" title="Change Colors" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">🎨</button>
+        </div>
+        <div id="colorSettingsPanel" style="display:none; background:#f4f4f4; padding:10px; border-radius:10px; margin-bottom:10px; text-align:left; border: 1px solid #ddd;"></div>
         <canvas id="pieChartCanvas"></canvas>
       </div>
 
@@ -210,19 +214,85 @@ td { color: #fff !important; }
     }
 
     /* PIE CHART (Issues per Status) */
-    new Chart(document.getElementById('pieChartCanvas'), {
-    type: 'pie',
-    data: {
-        labels: pieData.labels,
-        datasets: [{
-        data: pieData.data,
-        backgroundColor: ['#ff9800','#2196f3','#4caf50']
-        }]
-    },
-    options: {
-        responsive: true
-    }
+    let pieChartInstance = null;
+    const defaultColors = ['#ff9800', '#2196f3', '#4caf50', '#9c27b0', '#f44336', '#795548'];
+    
+    // Initial colors based on data length
+    const colorMap = {
+        'Solved': '#4caf50',   // Green
+        'Rejected': '#f44336', // Red
+        'Pending': '#ff9800',  // Orange
+        'Verified': '#2196f3', // Blue
+        'In Progress': '#03a9f4' // Light Blue
+    };
+
+    const initialColors = pieData.labels.map((label, i) => {
+        // Check if specific color exists for this label
+        if (colorMap[label]) return colorMap[label];
+        // Fallback to default colors
+        return defaultColors[i % defaultColors.length];
     });
+
+    pieChartInstance = new Chart(document.getElementById('pieChartCanvas'), {
+        type: 'pie',
+        data: {
+            labels: pieData.labels,
+            datasets: [{
+                data: pieData.data,
+                backgroundColor: initialColors
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+
+    // Toggle Color Settings Panel
+    window.toggleColorSettings = function(event) {
+        event.stopPropagation(); // Prevent affecting parent elements
+        const panel = document.getElementById('colorSettingsPanel');
+        
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            
+            // Populate inputs if empty
+            if (panel.innerHTML.trim() === '') {
+                pieData.labels.forEach((label, index) => {
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.justifyContent = 'space-between';
+                    row.style.alignItems = 'center';
+                    row.style.marginBottom = '5px';
+                    
+                    const lbl = document.createElement('span');
+                    lbl.textContent = label;
+                    lbl.style.fontSize = '14px';
+                    lbl.style.color = '#333';
+                    lbl.style.fontWeight = '500';
+
+                    const inp = document.createElement('input');
+                    inp.type = 'color';
+                    inp.value = pieChartInstance.data.datasets[0].backgroundColor[index];
+                    inp.style.border = 'none';
+                    inp.style.width = '30px';
+                    inp.style.height = '30px';
+                    inp.style.cursor = 'pointer';
+                    inp.style.borderRadius = '5px';
+                    
+                    inp.oninput = function(e) {
+                         pieChartInstance.data.datasets[0].backgroundColor[index] = e.target.value;
+                         pieChartInstance.update();
+                    };
+
+                    row.appendChild(lbl);
+                    row.appendChild(inp);
+                    panel.appendChild(row);
+                });
+            }
+        } else {
+            panel.style.display = 'none';
+        }
+    };
 
 
 </script>

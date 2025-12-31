@@ -8,9 +8,25 @@ import os
 import time
 import mimetypes
 
+from django.db.models import Q
+
 @login_required
 def dashboard(request):
-    issues = Issue.objects.filter(citizen=request.user).order_by('-created_at')
+    # Fetch issues based on phone number (New) OR Username (Old/Legacy)
+    phone = request.user.phone_number
+    
+    if phone:
+        # Create variations to catch legacy data (e.g. '919384256364' stored as username)
+        phone_clean = phone.replace('+', '') # Remove +
+        
+        issues = Issue.objects.filter(
+            Q(citizen__phone_number=phone) |      # Standard match
+            Q(citizen__username=phone) |          # Username match exact
+            Q(citizen__username=phone_clean)      # Username match without +
+        ).order_by('-created_at')
+    else:
+        # Fallback
+        issues = Issue.objects.filter(citizen=request.user).order_by('-created_at')
     
     # Calculate stats for the dashboard
     stats = {
@@ -25,7 +41,23 @@ def dashboard(request):
 
 @login_required
 def issue_detail(request, pk):
-    issue = get_object_or_404(Issue, pk=pk, citizen=request.user)
+    # Allow access if the issue belongs to the user OR matches their phone number (Legacy Logic)
+    phone = request.user.phone_number
+    
+    if phone:
+        phone_clean = phone.replace('+', '')
+        issue = get_object_or_404(
+            Issue.objects.filter(
+                Q(citizen=request.user) |
+                Q(citizen__phone_number=phone) |
+                Q(citizen__username=phone) |
+                Q(citizen__username=phone_clean)
+            ), 
+            pk=pk
+        )
+    else:
+        issue = get_object_or_404(Issue, pk=pk, citizen=request.user)
+        
     return render(request, 'citizen/issue_detail.html', {'issue': issue})
 
 @login_required
