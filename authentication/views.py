@@ -2,7 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.conf import settings
 from Cityplus.supabase_client import supabase
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate, login
+from django.utils import timezone
+from .utils import send_otp
+from .models import OTPVerification, LoginAttempt
 
 # Get the Django User model (we might still need to create a local user for DB consistency, 
 # or strictly rely on session. For a hybrid approach, we sync.)
@@ -111,64 +114,144 @@ def admin_register_view(request):
     return render(request, 'authentication/admin_register.html')
 
 
-# --- CITIZEN AUTH (Phone + OTP via Supabase) ---
+# --- CITIZEN AUTH (Custom Flow) ---
 
-def login_view(request):
+def citizen_auth_start(request):
     """
-    Handles Phone entry (send OTP) and OTP entry (verify).
+    Step 1: User enters Phone.
+    - If Registered: Redirect to Login.
+    - If Not Registered (or New): Send OTP -> Redirect to Verify.
     """
-    
-    # Check if we are in "Verify" step
-    step = request.POST.get('step', 'phone')
-    phone_context = request.POST.get('phone_number', '')
-
     if request.method == 'POST':
-        action = request.POST.get('action')
+        phone = request.POST.get('phone_number')
         
-        # 1. SEND OTP
-        if action == 'send_otp':
-            phone = request.POST.get('phone_number')
-            try:
-                # Format phone to E.164 if needed, assuming input +91... or clean it
-                # For now, pass as is, Supabase is picky about formats (e.g. +1234567890)
-                
-                # Supabase OTP Call
-                supabase.auth.sign_in_with_otp({ 
-                    "phone": phone 
-                })
-                
-                messages.success(request, f"OTP sent to {phone}")
-                return render(request, 'authentication/citizen_login.html', {'step': 'verify', 'phone': phone})
-                
-            except Exception as e:
-                messages.error(request, f"Error sending OTP: {str(e)}")
-                return render(request, 'authentication/citizen_login.html', {'step': 'phone'})
+        # Check if user exists
+        user_qs = User.objects.filter(phone_number=phone)
+        if user_qs.exists():
+            user = user_qs.first()
+            if user.is_registered:
+                messages.info(request, "Account exists. Please log in.")
+                return redirect('citizen_login')
+            else:
+                # Exists but not registered (maybe dropped off?)
+                send_otp(phone)
+                # messages.warning(request, f"DEBUG: Your OTP is {otp}") -- Removed for Production
+                return redirect('verify_otp', phone=phone)
+        else:
+            # New User
+            send_otp(phone)
+            # messages.warning(request, f"DEBUG: Your OTP is {otp}") -- Removed for Production
+            return redirect('verify_otp', phone=phone)
 
-        # 2. VERIFY OTP
-        elif action == 'verify_otp':
-            phone = request.POST.get('phone_number')
-            token = request.POST.get('otp')
+    return render(request, 'authentication/auth_start.html')
+
+def verify_otp_view(request, phone):
+    """
+    Step 2: Verify OTP via Supabase.
+    """
+    if request.method == 'POST':
+        otp_input = request.POST.get('otp')
+        
+        try:
+            # Supabase Verify
+            response = supabase.auth.verify_otp({
+                "phone": phone,
+                "token": otp_input,
+                "type": "sms"
+            })
             
-            try:
-                # Supabase Verify
-                response = supabase.auth.verify_otp({
-                    "phone": phone,
-                    "token": token,
-                    "type": "sms"
-                })
+            if response.user and response.session:
+                # OPTIONAL: Sync Session or just trust the flow
+                # create_django_session(request, response) 
                 
-                if response.user and response.session:
-                    create_django_session(request, response)
-                    return redirect('citizen_dashboard')
-                else:
-                    messages.error(request, "Verification failed (No session returned).")
-                    
-            except Exception as e:
-                messages.error(request, f"Invalid OTP or expired: {str(e)}")
-                return render(request, 'authentication/citizen_login.html', {'step': 'verify', 'phone': phone})
+                request.session['verified_phone'] = phone
+                return redirect('set_credentials')
+            else:
+                messages.error(request, "Verification failed (No session returned).")
+                
+        except Exception as e:
+            messages.error(request, f"Invalid OTP or expired: {str(e)}")
+    
+    return render(request, 'authentication/verify_otp.html', {'phone_number': phone})
 
-    return render(request, 'authentication/citizen_login.html', {'step': 'phone'})
+def set_credentials_view(request):
+    """
+    Step 3: Set Username & Password.
+    """
+    phone = request.session.get('verified_phone')
+    if not phone:
+        return redirect('citizen_auth_start')
+        
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        confirm = request.POST.get('confirm_password')
+        
+        if password != confirm:
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'authentication/set_credentials.html')
+            
+        # Database Check: Username Uniqueness
+        # We must exclude the current user (self) in case they are retrying or updating
+        current_user_qs = User.objects.filter(phone_number=phone)
+        username_check = User.objects.filter(username=username)
+        
+        if current_user_qs.exists():
+            username_check = username_check.exclude(pk=current_user_qs.first().pk)
+            
+        if username_check.exists():
+            messages.error(request, "Username already taken. Please choose another.")
+            return render(request, 'authentication/set_credentials.html')
+            
+        # Create or Update User
+        if current_user_qs.exists():
+            user = current_user_qs.first()
+            user.username = username
+            user.set_password(password)
+            user.is_registered = True
+            user.role = 'citizen'
+            user.save()
+        else:
+            user = User.objects.create_user(
+                username=username, 
+                password=password, 
+                phone_number=phone, 
+                role='citizen',
+                is_registered=True
+            )
+            
+        # Login and Redirect
+        login(request, user)
+        del request.session['verified_phone'] # Cleanup
+        return redirect('citizen_dashboard') # Assuming URL name
 
+    return render(request, 'authentication/set_credentials.html')
+
+def citizen_login_view(request):
+    """
+    Step 4: Returning User Login.
+    """
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            if user.is_citizen:
+                login(request, user)
+                
+                # Log attempt
+                LoginAttempt.objects.create(user=user, ip_address=request.META.get('REMOTE_ADDR'), successful=True)
+                
+                return redirect('citizen_dashboard')
+            else:
+                messages.error(request, "Access denied. Not a citizen account.")
+        else:
+            # Log failed attempt if username exists??
+            messages.error(request, "Invalid credentials.")
+            
+    return render(request, 'authentication/citizen_login.html')
 
 def logout_view(request):
     try:
@@ -179,8 +262,8 @@ def logout_view(request):
     from django.contrib.auth import logout
     logout(request)
     request.session.flush()
-    return redirect('index')
+    return redirect('citizen_auth_start') # Redirect to start
 
-# Deprecated/Unused register view (since citizen is strictly phone login now)
+# Deprecated
 def register_view(request):
-    return redirect('login')
+    return redirect('citizen_auth_start')

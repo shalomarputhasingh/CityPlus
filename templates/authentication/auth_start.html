@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CityPulse – Citizen Login</title>
+<title>CityPulse – Verification</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 {% load static %}
 <style>
@@ -161,6 +161,7 @@ body::before{
     text-align: center;
 }
 .alert-error { background: #fee; color: #c00; border: 1px solid #fcc; }
+.alert-success { background: #efe; color: #0c0; border: 1px solid #cfc; }
 </style>
 </head>
 
@@ -177,7 +178,7 @@ body::before{
           <img src="{% static 'assets/icons/logo.jpeg' %}" alt="logo">
         </div>
         <div>
-          <h2>Citypluse</h2>
+          <h2>Citypulse</h2>
           <p>Theni District | Public Grievance System</p>
         </div>
       </div>
@@ -190,8 +191,8 @@ body::before{
 
     <!-- FORM -->
     <div class="form">
-      <h3>Citizen Login</h3>
-
+      <h3>Get Started</h3>
+      
       {% if messages %}
         {% for message in messages %}
           <div class="alert alert-{{ message.tags }}">{{ message }}</div>
@@ -201,16 +202,11 @@ body::before{
       <form method="POST">
         {% csrf_token %}
         <div class="row">
-          <label>user id :</label>
-          <input type="text" name="username" id="userid" required>
+          <label>Phone:</label>
+          <input type="text" name="phone_number" placeholder="Enter Phone Number" required>
         </div>
 
-        <div class="row">
-          <label>password:</label>
-          <input type="password" name="password" id="password" required>
-        </div>
-
-        <button type="submit" class="submit">submit</button>
+        <button type="submit" class="submit">Continue</button>
       </form>
     </div>
 
