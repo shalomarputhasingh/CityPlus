@@ -24,7 +24,9 @@ After that you are all set and ready to launch the website.
 
 As it is build by using Django, you can start the server by using,
 
-`python manage.py runserver`
+```bash
+python manage.py runserver
+```
 
 And that it!!
 
