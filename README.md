@@ -1,18 +1,24 @@
 # Setup Instructions
 
-** Make sure you are in the project directory **
+**Make sure you are in the project directory**
 
 Making virtual environment for managing all the packages.
 
-`python -m venv env`
+```bash
+python -m venv env
+```
 
 You need to activate the virtual environment. 
 
-`./env/Scripts/activate`
+```bash
+./env/Scripts/activate
+```
 
 Now you need to install all the required packages in the venv.
 
-`pip install -r requirements.txt`
+```bash
+pip install -r requirements.txt
+```
 
 After that you are all set and ready to launch the website.
 
